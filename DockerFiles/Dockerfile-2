@@ -1,0 +1,42 @@
+
+# docker build command: docker build -t shahram/centos:nr-java-tomcat .
+# -e NEWRELIC_KEY=be8fada60de44c4103f77dc23d1e7b872fbf6429 -e NEWRELIC_APP_NAME=my-docker-app -e ADDITIONAL_VM_ARGS="-Dnewrelic.config.attributes.include=request.parameters.*"
+
+FROM shahram/centos:nr-java
+
+# Environment variables
+ENV JAVA_OPTS -Xms256m -Xmx1024m
+ENV NEWRELIC_KEY _READL_NR_LICENSE_KEY_
+ENV NEWRELIC_APP_NAME _NR_APPLICATION_NAME_
+ENV ADDITIONAL_VM_ARGS=
+
+
+
+# install tomcat
+RUN curl -s http://www.carfab.com/apachesoftware/tomcat/tomcat-8/v8.0.23/bin/apache-tomcat-8.0.23.zip -o /opt/apache-tomcat-8.0.23.zip 
+RUN unzip /opt/apache-tomcat-8.0.23.zip -d /opt/  
+RUN mv /opt/apache-tomcat-8.0.23 /opt/tomcat/  
+RUN rm /opt/apache-tomcat-8.0.23.zip && \
+	rm -f /opt/tomcat/bin/*.bat && \
+	chmod 775 /opt/tomcat/bin/*.sh*
+
+
+
+
+
+# configure new relic java agent - edit agent yml file
+RUN cp /opt/tomcat/bin/catalina.sh /opt/tomcat/bin/catalina.sh_`date +%Y%m%d%H%M%S` && chmod 775 /opt/tomcat/bin/catalina.sh
+RUN sed -i.bak_`date +%Y%m%d%H%M%S` '/# OS specific support/i\JAVA_OPTS="-javaagent:/opt/newrelic/newrelic.jar -Dnewrelic.config.license_key=${NEWRELIC_KEY} -Dnewrelic.config.app_name=${NEWRELIC_APP_NAME} ${ADDITIONAL_VM_ARGS} ${JAVA_OPTS}"' /opt/tomcat/bin/catalina.sh
+
+
+EXPOSE 8080
+
+
+
+
+
+CMD ["/opt/tomcat/bin/catalina.sh", "run"]
+
+
+
+

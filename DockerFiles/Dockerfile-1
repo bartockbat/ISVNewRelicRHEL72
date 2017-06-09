@@ -1,0 +1,40 @@
+
+# docker build command: docker build -t shahram/centos:nr-java .
+
+FROM centos:latest
+
+
+# Install dependencies.
+RUN yum install -y --setopt=tsflags=nodocs \
+	curl-devel \
+	net-tools \
+	git \
+	lsof \
+	tar \
+	unzip \
+	yum-utils && \
+	yum clean all -y
+
+RUN yum update -y
+
+
+
+
+
+# Install jdk 8
+RUN curl --insecure --junk-session-cookies --location --remote-name --silent --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u45-b14/jre-8u45-linux-x64.rpm
+
+RUN yum localinstall -y jre-8u45-linux-x64.rpm
+
+RUN rm jre-8u45-linux-x64.rpm
+
+
+
+
+# install new relic java agent
+RUN curl -s "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java-3.16.1.zip" -o /opt/newrelic.zip && \
+        unzip /opt/newrelic.zip -d /opt/ && \
+	cp -p /opt/newrelic/newrelic.yml /opt/newrelic/newrelic.yml.original && \
+        rm /opt/newrelic.zip
+
+
